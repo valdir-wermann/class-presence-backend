@@ -17,7 +17,7 @@ mongoose.connect('mongodb+srv://' + process.env.DATABASE_USER + ':' + process.en
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,Access-Control-Allow-Origin,ngrok-skip-browser-warning');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
     res.header('Access-Control-Expose-Headers', 'User');
 
