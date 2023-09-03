@@ -1,16 +1,20 @@
 const Teacher = require('../models/Teacher');
 const Code = require('../models/TeacherCode');
+const Class = require('../models/Class');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 class TeacherController {
-    findAll(req, res) {
-        const { name, email } = req.query;
+    async findAll(req, res) {
+        const { name, email, classId } = req.query;
         let ids;
 
         if (req.query.ids) ids = req.query.ids.split(',');
 
         const where = {};
+        if (classId) {
+            ids = (await Class.findById(classId)).teacherId;
+        }
         if (ids) where._id = { $in: ids }
         if (name) where.name = RegExp(name, 'i');
         if (email) where.email = email;
