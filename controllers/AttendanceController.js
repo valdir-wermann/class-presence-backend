@@ -107,11 +107,11 @@ class AttendanceController {
     async delete(req, res) {
         const a = await Attendance.findById(req.params.id);
         if (!a) return res.status(404).json({ msg: "attendance not found!" });
-        const { date, teacherId, classId } = a;
+        const { date, teacherId, classId, description } = a;
         if (!teacherId.includes(req.teacher._id)) return res.status(401).json({ error: 'You are not allowed to delete others attendance!' });
 
         try {
-            await Attendance.deleteMany({ date, teacherId, classId });
+            await Attendance.deleteMany({ date, teacherId, classId, description });
             res.status(200).json({ msg: 'Successfully deleted!' });
         } catch (e) {
             res.status(400).json({ error: 'Something went wrong!' })
