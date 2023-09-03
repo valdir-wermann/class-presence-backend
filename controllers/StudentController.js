@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 
 class StudentController {
     findAll(req, res) {
+        res.setHeader('User', (req.teacher) ? 'teacher' : 'student');
         const { name, email, classId } = req.query;
 
         const where = {};
