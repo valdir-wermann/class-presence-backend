@@ -58,7 +58,10 @@ class StudentController {
                 });
 
                 student.save()
-                    .then((stud) => res.status(201).json(stud))
+                    .then(async (stud) => {
+                        await Code.deleteOne({ code, type: 'student' });
+                        res.status(201).json(stud);
+                    })
                     .catch(error => res.status(400).json({ error }));
             })
             .catch(error => res.status(400).json(error));
