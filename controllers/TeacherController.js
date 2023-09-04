@@ -1,5 +1,5 @@
 const Teacher = require('../models/Teacher');
-const Code = require('../models/TeacherCode');
+const Code = require('../models/Code');
 const Class = require('../models/Class');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -24,6 +24,7 @@ class TeacherController {
 
         Teacher
             .find(where, select)
+            .sort({ name: 'asc' })
             .then(teachers => res.status(200).json(teachers))
             .catch(error => res.status(400).json({ error }));
     }
@@ -38,11 +39,10 @@ class TeacherController {
     }
 
     async create(req, res) {
-        const { name, email, card, password } = req.body;
-        console.log(req.body);
+        const { name, email, card, password, code } = req.body;
 
-        if (!name || !email || !card || !password) res.status(400).json({ error: "Invalid values!" });
-        if ((await Code.find({ code: req.body.code })).length === 0) return res.status(400).json({ error: 'Unable to create account without a valid token!' })
+        if (!name || !email || !card || !password || !code) res.status(400).json({ error: "Invalid values!" });
+        if ((await Code.find({ code, type: 'teacher' })).length === 0) return res.status(400).json({ error: 'Unable to create account without a valid token!' })
 
         const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
         const passwordformat = /((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,}))/g;
