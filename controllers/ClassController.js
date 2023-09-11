@@ -154,10 +154,10 @@ class ClassController {
                 });
             });
 
-            let writingData = 'Cartão,Nome,Presenças,Faltas,Aulas Totais';
+            let writingData = [['Cartão', 'Nome', 'Presenças', 'Faltas', 'Aulas Totais']];
 
             Object.entries(map).forEach(([id, total]) => {
-                writingData += `\r\n${students[id][0].card},${students[id][0].name},${total.presencas},${total.faltas},${total.presencas + total.faltas}`
+                writingData.push([students[id][0].card, students[id][0].name, total.presencas, total.faltas, total.presencas + total.faltas])
             });
 
             res.status(200).json(writingData);

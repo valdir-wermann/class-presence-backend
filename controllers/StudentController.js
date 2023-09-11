@@ -40,6 +40,7 @@ class StudentController {
 
         if (!name || !email || !card || !password || !code) res.status(400).json({ error: "Invalid values!" });
 
+        // if for code verification
         if ((await Code.find({ code, type: 'student' })).length === 0) return res.status(400).json({ error: 'Unable to create account without a valid token!' })
         const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
         const passwordformat = /((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,}))/g;
@@ -93,15 +94,10 @@ class StudentController {
         let { identifiers } = req.body;
 
         if (!identifiers) res.status(400).json({ error: 'Missing body identifier' });
-        console.log(identifiers);
 
         identifiers = identifiers.split(',');
-        console.log(identifiers);
-
         const cards = identifiers.filter(t => (/^[0-9]{8}$/g).test(t));
         const emails = identifiers.filter(t => !(/^[0-9]{8}$/g).test(t));
-
-        console.log({ cards, emails });
 
         try {
             const cl = await Class.findById(req.params.id);

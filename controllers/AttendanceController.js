@@ -101,7 +101,7 @@ class AttendanceController {
                 .then((attend) => res.status(200).json(attend))
                 .catch((error) => res.status(400).json(error));
         } else {
-            res.status(403).json({ err: 'Forbidden request!' })
+            res.status(403).json({ error: 'Not allowed to do that!' })
         }
     }
     async delete(req, res) {
@@ -123,6 +123,7 @@ class AttendanceController {
         try {
             const attendance = await Attendance.findById(req.params.id);
             let { date, classId, teacherId } = attendance;
+
             const attendances = await Attendance.find({ date, classId, teacherId });
             let students = await Student.find({ _id: { $in: attendances.map(at => at.studentId) } });
             students = _.groupBy(students, '_id');
@@ -135,9 +136,17 @@ class AttendanceController {
                 'atrasado': 'ATRASADO',
                 'fj': 'FALTA JUSTIFICADA'
             }
-            let csvWriting = `Cartão,Nome,Tipo,Dia: ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} - às ${date.getHours()}:${date.getMinutes()} por ${attendance.periods} períodos`;
+            const month = date.getMonth() + 1;
+            const normalize = (s) => {
+                s = s.toString();
+                if (s.length === 1) return '0' + s;
+                return s;
+            }
+            let csvWriting = [
+                ['Cartão', 'Nome', 'Tipo', `Dia: ${normalize(date.getDate())}/${normalize(month)}/${date.getFullYear()} por ${attendance.periods} períodos`]
+            ];
             attendances.forEach(at => {
-                csvWriting += `\r\n${students[at.studentId][0].card},${students[at.studentId][0].name},${typeMap[at.type]}`;
+                csvWriting.push([students[at.studentId][0].card, students[at.studentId][0].name, typeMap[at.type]])
             });
 
             res.status(200).json(csvWriting);
