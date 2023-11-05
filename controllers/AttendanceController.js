@@ -87,22 +87,43 @@ class AttendanceController {
     }
 
     async update(req, res) {
-        const { type } = req.body;
+        const { type, date } = req.body;
 
         const updateAttendance = {};
-        if (type) updateAttendance.type = type;
+        if (type) {
+            updateAttendance.type = type;
+            const a = await Attendance.findById(req.params.id);
+            if (!a) res.status(404).json({ err: 'Not found!' })
 
-        const a = await Attendance.findById(req.params.id);
-        if (!a) res.status(404).json({ err: 'Not found!' })
-
-        if (a.teacherId === req.teacher._id) {
-            Attendance
-                .findByIdAndUpdate(req.params.id, updateAttendance)
-                .then((attend) => res.status(200).json(attend))
-                .catch((error) => res.status(400).json(error));
-        } else {
-            res.status(403).json({ error: 'Not allowed to do that!' })
+            if (a.teacherId === req.teacher._id) {
+                Attendance
+                    .findByIdAndUpdate(req.params.id, updateAttendance)
+                    .then((attend) => res.status(200).json(attend))
+                    .catch((error) => res.status(400).json(error));
+            } else {
+                res.status(403).json({ error: 'Not allowed to do that!' })
+            }
         }
+        if (date) {
+            updateAttendance.date = date;
+
+            const a = await Attendance.findById(req.params.id);
+            if (!a) res.status(404).json({ err: 'Not found!' });
+            
+            try {
+                if (a.teacherId === req.teacher._id) {
+                    Attendance
+                      .updateMany({teacherId: a.teacherId, date: a.date, description: a.description, periods: a.periods}, updateAttendance)
+                      .then((attend) => res.status(200).json(attend))
+                      .catch((error) => res.status(400).json(error));
+                } else {
+                    res.status(403).json({ error: 'Not allowed to do that!' })
+                }
+            } catch(error) {
+                res.status(400).json({ error });
+            }
+        }
+
     }
     async delete(req, res) {
         const a = await Attendance.findById(req.params.id);
@@ -125,7 +146,7 @@ class AttendanceController {
             let { date, classId, teacherId } = attendance;
 
             const attendances = await Attendance.find({ date, classId, teacherId });
-            let students = await Student.find({ _id: { $in: attendances.map(at => at.studentId) } });
+            let students = await Student.find({ _id: { $in: attendances.map(at => at.studentId) } }).sort('name');
             students = _.groupBy(students, '_id');
 
             date = new Date(date);
@@ -145,9 +166,10 @@ class AttendanceController {
             let csvWriting = [
                 ['Cartão', 'Nome', 'Tipo', `Dia: ${normalize(date.getDate())}/${normalize(month)}/${date.getFullYear()} por ${attendance.periods} períodos`]
             ];
-            attendances.forEach(at => {
-                csvWriting.push([students[at.studentId][0].card, students[at.studentId][0].name, typeMap[at.type]])
-            });
+            Object.values(students).forEach(stud => {
+                const tipo = attendances.find(_ => _.studentId == stud[0]._id);
+                csvWriting.push([stud[0].card,stud[0].name,typeMap[tipo.type]])
+            })
 
             res.status(200).json(csvWriting);
         }
