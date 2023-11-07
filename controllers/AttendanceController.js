@@ -87,7 +87,7 @@ class AttendanceController {
     }
 
     async update(req, res) {
-        const { type, date } = req.body;
+        const { type, date, desc, periods } = req.body;
 
         const updateAttendance = {};
         if (type) {
@@ -104,16 +104,19 @@ class AttendanceController {
                 res.status(403).json({ error: 'Not allowed to do that!' })
             }
         }
-        if (date) {
-            updateAttendance.date = date;
+        if (date || desc || periods) {
+            if (date) updateAttendance.date = date;
+            if (desc) updateAttendance.description = desc.toUpperCase();
+            if (periods) updateAttendance.periods = periods;
+
+            console.log(updateAttendance);
 
             const a = await Attendance.findById(req.params.id);
             if (!a) res.status(404).json({ err: 'Not found!' });
             
             try {
                 if (a.teacherId === req.teacher._id) {
-                    Attendance
-                      .updateMany({teacherId: a.teacherId, date: a.date, description: a.description, periods: a.periods}, updateAttendance)
+                    Attendance.updateMany({teacherId: a.teacherId, date: a.date, description: a.description, periods: a.periods}, updateAttendance)
                       .then((attend) => res.status(200).json(attend))
                       .catch((error) => res.status(400).json(error));
                 } else {
